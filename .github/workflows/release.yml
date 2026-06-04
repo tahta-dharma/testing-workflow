@@ -1,0 +1,43 @@
+name: GitHub Release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - prod
+
+concurrency:
+  group: github-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: prod
+          fetch-depth: 0
+
+      - name: Get version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "'v' + require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag and GitHub release
+        run: |
+          git tag ${{ steps.version.outputs.version }}
+          git push origin ${{ steps.version.outputs.version }}
+          gh release create ${{ steps.version.outputs.version }} \
+            --target prod \
+            --generate-notes \
+            --title "${{ steps.version.outputs.version }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
