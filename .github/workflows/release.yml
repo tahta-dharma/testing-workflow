@@ -2,6 +2,8 @@ name: GitHub Release
 
 on:
   pull_request:
+    types:
+      - closed
     branches:
       - prod
 
