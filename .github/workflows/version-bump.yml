@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Configure git
         run: |
@@ -75,8 +75,10 @@ jobs:
           echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "Bumped to $NEW_VERSION"
 
-      - name: Commit version bump
+      - name: Commit version bump and tag
         run: |
           git add package.json package-lock.json
           git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]"
+          git tag ${{ steps.version.outputs.version }}
           git push
+          git push origin ${{ steps.version.outputs.version }}
